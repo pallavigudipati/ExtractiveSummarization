@@ -44,6 +44,41 @@ public class InvertedIndex {
         }
     }
 
+    public double[][] getCosineSimilarity() {
+        generateTfIdfScores();
+        double[][] adjMatrix = new double[numSentences][numSentences];
+        double[] modulus = new double[numSentences];
+
+        // Calculating modulus for each node. TODO: Do we need to normalize by length?
+        for (int i = 0; i < numSentences; ++i) {
+            double modI = 0.0;
+            HashMap<String, Double> vectorI = tfIdfScores[i];
+            for (String key : vectorI.keySet()) {
+                modI += vectorI.get(key) * vectorI.get(key);
+            }
+            modI = Math.sqrt(modI);
+            modulus[i] = modI;
+        }
+        for (int i = 0; i < numSentences; ++i) {
+            double modI = modulus[i];
+            HashMap<String, Double> vectorI = tfIdfScores[i];
+            // TODO: changing j = 0 to j = i. Check once
+            for (int j = i; j < numSentences; j++) {
+                double modJ = modulus[j];
+                HashMap<String, Double> vectorJ = tfIdfScores[j];
+                double dotProduct = 0.0;
+                for (String key : vectorI.keySet()) {
+                    if (vectorJ.get(key) != null) {
+                        dotProduct += vectorI.get(key) * vectorJ.get(key);
+                    }
+                }
+                dotProduct /= (modI * modJ);
+                adjMatrix[i][j] = adjMatrix[j][i] = dotProduct;
+            }
+        }
+        return adjMatrix;
+    }
+
     /*
      * Generates the idf scores.
      */
@@ -54,7 +89,7 @@ public class InvertedIndex {
         }
     }
 
-    public void generateTfIdfScores() {
+    private void generateTfIdfScores() {
         generateIdfScores();
         tfIdfScores = new HashMap[numSentences];
         for (int i = 0; i < numSentences; ++i) {
@@ -69,5 +104,4 @@ public class InvertedIndex {
             }
         }
     }
-    
 }
