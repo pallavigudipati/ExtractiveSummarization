@@ -108,6 +108,7 @@ public class POSTagger {
         {
         	for(int j=i;j<doc.size();j++)
         	{
+        		/*TODO:This is a tunable parameter. Add as global constant later*/
         		if(adjMatrix[i][j]>=0.05)
         		{
         			writer.println(i+" "+j+" "+adjMatrix[i][j]);

@@ -1,6 +1,13 @@
 from igraph import *
 import sys
-
+import os
+#Clean the communities folder
+dirPath="/home/vgtomahawk/7thSem/CS6370/NLPProject/Summarization/Communities"
+fileList=os.listdir(dirPath)
+for fileName in fileList:
+	os.remove(dirPath+"/"+fileName)
+print "Cleaned the Communities Folder"
+#End of Clean
 inputFile=open(sys.argv[1])
 addedNodes={}
 #Read the graph from the file
