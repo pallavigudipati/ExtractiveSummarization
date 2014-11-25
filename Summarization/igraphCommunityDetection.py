@@ -93,4 +93,4 @@ IndicedPRList=[(i,PRList[i]) for i in range(len(PRList))]
 IndicedPRList.sort(key=lambda tup: tup[1])
 IndicedPRList.reverse()
 print "Summary according to Global PageRank"
-print [elem[0] for elem in IndicedPRList[:10]]
+print [elem[0] for elem in IndicedPRList[:20]]
