@@ -26,8 +26,8 @@ for line in inputFile:
 	edgeWeight=float(words[2])
 	g.add_edges([(source,destination),])
 	g.es[edgeCount]["weight"]=edgeWeight
-	edgeMap[str(source)+"_"+str(destination)]=1
-	edgeMap[str(destination)+"_"+str(source)]=1
+	edgeMap[str(source)+"_"+str(destination)]=edgeWeight
+	edgeMap[str(destination)+"_"+str(source)]=edgeWeight
 	print edgeCount
 	edgeCount+=1
 	if edgeCount>10000:
@@ -37,8 +37,23 @@ for line in inputFile:
 #	print clusterInstance
 vertexDendrogram=g.community_fastgreedy(weights="weight")
 vertexClustering=vertexDendrogram.as_clustering()
+vertexClusterIndex=0
 for vertexCluster in vertexClustering:
 	print vertexCluster
+	communityFile=open("Communities/"+str(vertexClusterIndex)+".txt","w")
+	for sourceIndex in range(len(vertexCluster)):
+		for destinationIndex in range(len(vertexCluster)):
+			source=vertexCluster[sourceIndex]
+			destination=vertexCluster[destinationIndex]
+			if destination>source:
+				edgeKey=str(source)+"_"+str(destination)
+				if edgeKey not in edgeMap:
+					continue
+				edgeWeight=edgeMap[edgeKey]
+				communityFile.write(str(source)+" "+str(destination)+" "+str(edgeWeight)+"\n")
+	communityFile.close()
+	#Note: activate the below code for 0-indexed communities
+	"""
 	communityGraph=Graph()
 	communityGraph.add_vertices(len(vertexCluster))
 	for source in range(len(vertexCluster)):
@@ -46,7 +61,9 @@ for vertexCluster in vertexClustering:
 			if destination>=source:
 				if (str(vertexCluster[source])+"_"+str(vertexCluster[destination])) in edgeMap:
 					communityGraph.add_edges([(source,destination),])
-
+	"""
+	vertexClusterIndex+=1	
+#Find top 10 nodes 
 PRList=g.pagerank(weights="weight")
 IndicedPRList=[(i,PRList[i]) for i in range(len(PRList))]
 IndicedPRList.sort(key=lambda tup: tup[1])

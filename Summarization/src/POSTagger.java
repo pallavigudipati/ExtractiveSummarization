@@ -30,7 +30,6 @@ public class POSTagger {
         System.out.println(taggedString);
         System.out.println(endTime - startTime);
         DocumentPreprocessor dp=new DocumentPreprocessor("GiftOfTheMagi.txt");
-        System.out.println("Blaaaa");
         Stemmer stemmer=new Stemmer();
         List<List<String>> stemmedSentences=new ArrayList<List<String>>();
         for(List sentence: dp)
@@ -140,24 +139,13 @@ public class POSTagger {
         SystemCommandExecutor commandExecutor = new SystemCommandExecutor(command);
         int result = commandExecutor.executeCommand();
         System.out.println("end");
-        /*
-        s.add('s');
-        s.add('i');
-        s.add('n');
-        s.add('g');
-        s.add('i');
-        s.add('n');
-        s.add('g');
-        */
-        /*
-        String sampleWord=new String("singing");
-        s.add(sampleWord.toCharArray(),sampleWord.length());
-        s.stem();
-        System.out.println(s.toString());
-        sampleWord=new String("pushing");
-        s.add(sampleWord.toCharArray(),sampleWord.length());
-        s.stem();
-        System.out.println(s.toString());*/
+        /*Call the python community detection code*/
+        command=new ArrayList<String>();
+        command.add("python");
+        command.add("igraphCommunityDetection.py");
+        command.add("sentenceGraph.txt");
+        commandExecutor = new SystemCommandExecutor(command);
+        result = commandExecutor.executeCommand();
     }
 
     public void loadMappings() {
