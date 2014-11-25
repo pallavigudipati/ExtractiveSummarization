@@ -35,3 +35,20 @@ for i in range(0,num_communities):
 	
 	# Executing the command.
 	subprocess.call(command, shell=True)
+
+print 'Finished IM. Extracting the vertices.'
+filename = 'LT_SimPath_4_0.001.txt'
+final_output = output_root_dir + 'IM_output.txt' 
+nodes = []
+for folder in os.listdir(output_root_dir):
+	output_file = open(output_root_dir + folder + '/' + filename, 'r')
+	output = output_file.read().strip().split('\n')
+	output_file.close()
+	for line in output:
+		nodes.append(int(line.split()[0]))
+nodes.sort()
+nodes = map(str, nodes)
+
+final = open(final_output, 'wb')
+final.write(' '.join(nodes))
+final.close()

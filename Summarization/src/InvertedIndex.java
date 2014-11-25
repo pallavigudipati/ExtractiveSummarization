@@ -99,7 +99,7 @@ public class InvertedIndex {
             double idf = idfScores.get(entry.getKey());
             for (Entry<Integer, Integer> sentence : entry.getValue().entrySet()) {
                 double tf = 0.5 + (0.5 * sentence.getValue()) /100.0;  //maxWordCounts[sentence.getKey()];
-                System.out.println("TF"+sentence.getValue());	
+                // System.out.println("TF"+sentence.getValue());	
                 tfIdfScores[sentence.getKey()].put(entry.getKey(), idf * tf);
             }
         }
