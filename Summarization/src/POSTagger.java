@@ -29,7 +29,7 @@ public class POSTagger {
         long endTime = System.currentTimeMillis();
         System.out.println(taggedString);
         System.out.println(endTime - startTime);
-        DocumentPreprocessor dp=new DocumentPreprocessor("GiftOfTheMagi.txt");
+        DocumentPreprocessor dp=new DocumentPreprocessor("pledge.txt");
         Stemmer stemmer=new Stemmer();
         List<List<String>> stemmedSentences=new ArrayList<List<String>>();
         for(List sentence: dp)

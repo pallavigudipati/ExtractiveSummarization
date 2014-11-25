@@ -1,8 +1,16 @@
 from igraph import *
 import sys
 import os
-#Clean the communities folder
-dirPath="/home/vgtomahawk/7thSem/CS6370/NLPProject/Summarization/Communities"
+cwdPath=os.getcwd()
+cwdPathSplit=cwdPath.split("/")
+#print cwdPathSplit
+if cwdPathSplit[-1]=="Summarization":
+	dirPath=cwdPath+"/Communities"
+	testFile=open("test.txt","w")
+	testFile.write("Success")
+	#print dirPath
+else:
+	dirPath="/home/vgtomahawk/7thSem/CS6370/NLPProject/Summarization/Communities"
 fileList=os.listdir(dirPath)
 for fileName in fileList:
 	os.remove(dirPath+"/"+fileName)
@@ -35,7 +43,7 @@ for line in inputFile:
 	g.es[edgeCount]["weight"]=edgeWeight
 	edgeMap[str(source)+"_"+str(destination)]=edgeWeight
 	edgeMap[str(destination)+"_"+str(source)]=edgeWeight
-	print edgeCount
+	#print edgeCount
 	edgeCount+=1
 	if edgeCount>10000:
 		break
