@@ -1,14 +1,11 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
+/*
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import edu.stanford.nlp.tagger.maxent.MaxentTagger;
-import edu.stanford.nlp.ling.*;
 import edu.stanford.nlp.process.*;
 
 public class POSTagger {
@@ -22,17 +19,20 @@ public class POSTagger {
 
     public static void main(String[] args) throws IOException,
             InterruptedException {
-        POSTagger posTagger = new POSTagger();
-        MaxentTagger tagger = new MaxentTagger(
-                "pos-model/english-bidirectional-distsim.tagger");
+        // POSTagger posTagger = new POSTagger();
+        // MaxentTagger tagger = new MaxentTagger("pos-model/english-bidirectional-distsim.tagger");
         // posTagger.loadMappings();
-        String example = "It is Max's girl";
-        long startTime = System.currentTimeMillis();
+        // String example = "It is Max's girl";
+        // long startTime = System.currentTimeMillis();
         // String[] taggedString = posTagger.tagSentence(example);
-        long endTime = System.currentTimeMillis();
+        // long endTime = System.currentTimeMillis();
         // System.out.println(taggedString);
+<<<<<<< HEAD
         System.out.println(endTime - startTime);
 
+=======
+        // System.out.println(endTime - startTime);
+>>>>>>> d11844540b577b1e1dc909eba5c6dec1a22da059
         DocumentPreprocessor dp = new DocumentPreprocessor("pledge.txt");
         Stemmer stemmer = new Stemmer();
         List<List<String>> stemmedSentences = new ArrayList<List<String>>();
@@ -48,16 +48,16 @@ public class POSTagger {
             stemmedSentences.add(stemmedSentence);
             System.out.println(stemmedSentence);
         }
-        List<String> sen1 = Arrays.asList("my", "name", "is", "pal", "and",
-                "this", "is", "not", "a", "good", "place", "to", "converse");
-        List<String> sen2 = Arrays.asList("my", "last-name", "is", "pal");
-        List<String> sen4 = Arrays.asList("He", "is", "is", "a", "joker");
-        List<String> sen3 = Arrays.asList("There", "was", "a", "great", "man",
-                "named", "Arthur");
+//        List<String> sen1 = Arrays.asList("my", "name", "is", "pal", "and",
+//                "this", "is", "not", "a", "good", "place", "to", "converse");
+//        List<String> sen2 = Arrays.asList("my", "last-name", "is", "pal");
+//        List<String> sen4 = Arrays.asList("He", "is", "is", "a", "joker");
+//        List<String> sen3 = Arrays.asList("There", "was", "a", "great", "man",
+//                "named", "Arthur");
         List<List<String>> doc = stemmedSentences;// Arrays.asList(sen1, sen2, sen3,sen4);
         InvertedIndex index = new InvertedIndex();
         index.createIndex(doc);
-        index.generateTfIdfScores();
+        // index.generateTfIdfScores();
         System.out.println(index.tfIdfScores[0]);
         System.out.println(index.tfIdfScores[1]);
         System.out.println(index.tfIdfScores[2]);
@@ -104,15 +104,19 @@ public class POSTagger {
             }
         }
         writer.close();
-        /* Write out all the sentences to a file for visual inspection */
+        // Write out all the sentences to a file for visual inspection 
         writer = new PrintWriter("sentenceLog.txt", "UTF-8");
         for (int i = 0; i < doc.size(); i++) {
             writer.println(i + " : " + doc.get(i));
 
         }
         writer.close();
+<<<<<<< HEAD
         /*MCL Community Detection Code*/
         /*
+=======
+        // Do the community detection
+>>>>>>> d11844540b577b1e1dc909eba5c6dec1a22da059
         String INPUT_LINE_GRAPH = "sentenceGraph.txt";
         String MODULARITY_FILE = "modularityMatrix/matrix.txt";
         String INFLATION = "1.5";
@@ -127,11 +131,18 @@ public class POSTagger {
         command.add(MCL_FILE);
         SystemCommandExecutor commandExecutor = new SystemCommandExecutor(
                 command);
+<<<<<<< HEAD
         result = commandExecutor.executeCommand();
         System.out.println("end");*/
         
         /* Call the python community detection code */
+		/*
         List<String> command = new ArrayList<String>();
+        int result = commandExecutor.executeCommand();
+        System.out.println("end");
+        // Call the python community detection code 
+        command = new ArrayList<String>();
+
         command.add("python");
         command.add("igraphCommunityDetection.py");
         command.add("sentenceGraph.txt");
@@ -166,4 +177,5 @@ public class POSTagger {
 //        }
 //        return internalSentence.toArray(new String[internalSentence.size()]);
 //    }
-}
+// }
+*/

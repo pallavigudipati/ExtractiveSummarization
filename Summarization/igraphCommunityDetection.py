@@ -1,6 +1,7 @@
 from igraph import *
 import sys
 import os
+import shutil
 cwdPath=os.getcwd()
 cwdPathSplit=cwdPath.split("/")
 #print cwdPathSplit
@@ -16,6 +17,13 @@ for fileName in fileList:
 	os.remove(dirPath+"/"+fileName)
 print "Cleaned the Communities Folder"
 #End of Clean
+
+#Create output directory for community node counts
+communityNodeCountsDir="CommunityNodeCounts/"
+if os.path.exists(communityNodeCountsDir):
+	shutil.rmtree(communityNodeCountsDir)
+os.makedirs(communityNodeCountsDir)
+communityNodeCountsFile=open(communityNodeCountsDir+"communityNodeCounts.txt","w")
 inputFile=open(sys.argv[1])
 addedNodes={}
 #Read the graph from the file
@@ -67,6 +75,7 @@ for vertexCluster in vertexClustering:
 				edgeWeight=edgeMap[edgeKey]
 				communityFile.write(str(source)+" "+str(destination)+" "+str(edgeWeight)+"\n")
 	communityFile.close()
+	communityNodeCountsFile.write(str(len(vertexCluster))+"\n")
 	#Note: activate the below code for 0-indexed communities
 	"""
 	communityGraph=Graph()
