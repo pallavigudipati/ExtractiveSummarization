@@ -24,63 +24,55 @@ public class Summarizer {
         // TODO: Attach IM part.
         summarizer.printSummary("IM/IM_output.txt");
     }
-    
-    
-    public void runInfluenceMaximization() throws IOException
-    {
-    	int totalGraphSize=0;
-    	int summaryLimit=20; //TODO:Add as global parameter
-    	/*Read node counts from a file*/
-    	BufferedReader br = new BufferedReader(new FileReader("CommunityNodeCounts/communityNodeCounts.txt"));
-    	ArrayList<Integer> communityNodeCounts=new ArrayList<Integer>();
 
-    	String line;
-    	while ((line = br.readLine()) != null) {
-    	   // process the line.
-    		int nodeCount = Integer.parseInt(line);
-    		communityNodeCounts.add(nodeCount);
-    		totalGraphSize+=nodeCount;
-    	}
-    	br.close();
-    	/*Compute sentence budget*/
-    	ArrayList<Integer> sentenceBudgets=new ArrayList<Integer>();
-    	ArrayList<Integer> admittedCommunities=new ArrayList<Integer>();
-    	int effectiveGraphSize=0;
-    	for(int i=0;i<communityNodeCounts.size();i++)
-    	{
-    		int nodeCount=communityNodeCounts.get(i);
-    		double nodeFraction = (nodeCount+0.0)/(totalGraphSize+0.0);
-    		double exactFractionalWeight = nodeFraction*summaryLimit;
-    		if(exactFractionalWeight>=1.0)
-    		{
-    			effectiveGraphSize+=nodeCount;
-    			admittedCommunities.add(i);
-    		}
-    	}
-    	System.out.println(admittedCommunities);
-    	for(int i=0;i<communityNodeCounts.size();i++)
-    	{
-    		if(admittedCommunities.contains(i))
-    		{
-    			int nodeCount=communityNodeCounts.get(i);
-    			double nodeFraction = (nodeCount+0.0)/(effectiveGraphSize+0.0);
-    			double exactFractionalWeight = nodeFraction*summaryLimit;
-    			sentenceBudgets.add((int)Math.floor(exactFractionalWeight));
-    			System.out.println(Math.floor(exactFractionalWeight));
-    		}
-    		else
-    		{
-    			sentenceBudgets.add(0);
-    		}
-    		
-    	}
+    public void runInfluenceMaximization() throws IOException {
+        int totalGraphSize = 0;
+        int summaryLimit = 10; // TODO:Add as global parameter
+        // Read node counts from a file.
+        BufferedReader br = new BufferedReader(new FileReader(
+                "CommunityNodeCounts/communityNodeCounts.txt"));
+        ArrayList<Integer> communityNodeCounts = new ArrayList<Integer>();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            // process the line.
+            int nodeCount = Integer.parseInt(line);
+            communityNodeCounts.add(nodeCount);
+            totalGraphSize += nodeCount;
+        }
+        br.close();
+        // Compute sentence budget.
+        ArrayList<Integer> sentenceBudgets = new ArrayList<Integer>();
+        ArrayList<Integer> admittedCommunities = new ArrayList<Integer>();
+        int effectiveGraphSize = 0;
+        for (int i = 0; i < communityNodeCounts.size(); i++) {
+            int nodeCount = communityNodeCounts.get(i);
+            double nodeFraction = (nodeCount + 0.0) / (totalGraphSize + 0.0);
+            double exactFractionalWeight = nodeFraction * summaryLimit;
+            if (exactFractionalWeight >= 1.0) {
+                effectiveGraphSize += nodeCount;
+                admittedCommunities.add(i);
+            }
+        }
+        System.out.println(admittedCommunities);
+        for (int i = 0; i < communityNodeCounts.size(); i++) {
+            if (admittedCommunities.contains(i)) {
+                int nodeCount = communityNodeCounts.get(i);
+                double nodeFraction = (nodeCount + 0.0)
+                        / (effectiveGraphSize + 0.0);
+                double exactFractionalWeight = nodeFraction * summaryLimit;
+                sentenceBudgets.add((int) Math.floor(exactFractionalWeight));
+                System.out.println(Math.floor(exactFractionalWeight));
+            } else {
+                sentenceBudgets.add(0);
+            }
+        }
         List<String> command = new ArrayList<String>();
         command.add("python");
         command.add("influence_maximization.py");
         command.add(Integer.toString(communityNodeCounts.size()));
-        for(Integer sentenceBudget:sentenceBudgets)
-        {
-        	command.add(Integer.toString(sentenceBudget));
+        for (Integer sentenceBudget : sentenceBudgets) {
+            command.add(Integer.toString(sentenceBudget));
         }
         SystemCommandExecutor commandExecutor = new SystemCommandExecutor(command);
         commandExecutor = new SystemCommandExecutor(command);
@@ -89,10 +81,12 @@ public class Summarizer {
         } catch (Exception e) {
             System.out.println("Error in influence maximization: " + e.getMessage());
         }
-        System.out.println("Influence Maximization: Finished");    	
-    	return;
+        System.out.println("Influence Maximization: Finished");
+        return;
     }
-    // Merging it into one function so that the the whole graph is iterated only once. 
+
+    // Merging it into one function so that the the whole graph is iterated only
+    // once.
     public void getRawAndStemmed(String fileName) {
         DocumentPreprocessor dp = new DocumentPreprocessor(fileName);
         Stemmer stemmer = new Stemmer();
@@ -101,7 +95,8 @@ public class Summarizer {
             rawDocument.add(StringUtils.join(sentence, " "));
             List<String> stemmedSentence = new ArrayList<String>();
             for (Object word : sentence) {
-                stemmer.add(word.toString().toCharArray(), word.toString().length());
+                stemmer.add(word.toString().toCharArray(), word.toString()
+                        .length());
                 stemmer.stem();
                 stemmedSentence.add(stemmer.toString());
             }
@@ -125,7 +120,8 @@ public class Summarizer {
             }
             writer.close();
         } catch (Exception e) {
-            System.out.println("Not able to print sentenceGraph: " + e.getMessage());
+            System.out.println("Not able to print sentenceGraph: "
+                    + e.getMessage());
         }
         System.out.println("Sentence Graph Creation: Finished");
     }
@@ -136,12 +132,14 @@ public class Summarizer {
         command.add("python");
         command.add("igraphCommunityDetection.py");
         command.add("sentenceGraph.txt");
-        SystemCommandExecutor commandExecutor = new SystemCommandExecutor(command);
+        SystemCommandExecutor commandExecutor = new SystemCommandExecutor(
+                command);
         commandExecutor = new SystemCommandExecutor(command);
         try {
             int result = commandExecutor.executeCommand();
         } catch (Exception e) {
-            System.out.println("Error in community detection: " + e.getMessage());
+            System.out.println("Error in community detection: "
+                    + e.getMessage());
         }
         System.out.println("Community Detection: Finished");
     }
@@ -159,7 +157,8 @@ public class Summarizer {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error retrieving results from IM: " + e.getMessage());
+            System.out.println("Error retrieving results from IM: "
+                    + e.getMessage());
         }
     }
 }
