@@ -1,12 +1,20 @@
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.process.DocumentPreprocessor;
+import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.StringUtils;
 
 public class Summarizer {
@@ -14,11 +22,14 @@ public class Summarizer {
     public int numSentences;
     public List<String> rawDocument = new ArrayList<String>();
     public List<List<String>> stemmedSentences = new ArrayList<List<String>>();
+    public List<List<String>> lemmatizedSentences = new ArrayList<List<String>>();
 
     public static void main(String[] args) throws IOException {
         Summarizer summarizer = new Summarizer();
-        summarizer.getRawAndStemmed("TreasureIsland.txt");
-        summarizer.printSentenceGraph(0.05);
+        // summarizer.getRawAndStemmed("TreasureIsland.txt");
+        summarizer.getRawAndLemmatized("TreasureIsland.txt");
+        // summarizer.printSentenceGraphIdf(0.05);
+        summarizer.printSentenceGraphWN(0.05, 3);
         summarizer.runCommunityDetection();
         summarizer.runInfluenceMaximization();
         // TODO: Attach IM part.
@@ -105,10 +116,53 @@ public class Summarizer {
         numSentences = rawDocument.size();
     }
 
-    public void printSentenceGraph(double threshold) {
+    public void getRawAndLemmatized(String fileName) {
+        DocumentPreprocessor dp = new DocumentPreprocessor(fileName);
+        // String document = "";
+        Properties props = new Properties();
+        props.put("annotators", "tokenize, ssplit, pos, lemma");
+        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+        for (List sentence : dp) {
+            String rawSentence = StringUtils.join(sentence, " ");
+            rawDocument.add(rawSentence);
+            List<String> lemmatizedSentence = new ArrayList<String>();
+            Annotation document = new Annotation(rawSentence);
+            pipeline.annotate(document);
+            CoreMap sentenceParsed = document.get(SentencesAnnotation.class).get(0);
+            for (CoreLabel token : sentenceParsed.get(TokensAnnotation.class)) {
+              // Retrieve and add the lemma for each word into the
+              // list of lemmas
+              lemmatizedSentence.add(token.get(LemmaAnnotation.class));
+            }
+            lemmatizedSentences.add(lemmatizedSentence);
+        }
+        numSentences = rawDocument.size();
+    }
+
+    public void printSentenceGraphIdf(double threshold) {
         InvertedIndex index = new InvertedIndex();
         index.createIndex(stemmedSentences);
         double[][] weightMatrix = index.getCosineSimilarity();
+        try {
+            PrintWriter writer = new PrintWriter("sentenceGraph.txt", "UTF-8");
+            for (int i = 0; i < numSentences; i++) {
+                for (int j = i; j < numSentences; j++) {
+                    if (weightMatrix[i][j] >= threshold) {
+                        writer.println(i + " " + j + " " + weightMatrix[i][j]);
+                    }
+                }
+            }
+            writer.close();
+        } catch (Exception e) {
+            System.out.println("Not able to print sentenceGraph: "
+                    + e.getMessage());
+        }
+        System.out.println("Sentence Graph Creation: Finished");
+    }
+
+    public void printSentenceGraphWN(double threshold, int type) {
+        WordNetSimilarity wnSimilarity = new WordNetSimilarity(lemmatizedSentences);
+        double[][] weightMatrix = wnSimilarity.getCosineSimilarity(type);
         try {
             PrintWriter writer = new PrintWriter("sentenceGraph.txt", "UTF-8");
             for (int i = 0; i < numSentences; i++) {

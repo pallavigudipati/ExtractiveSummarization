@@ -15,15 +15,15 @@ import edu.cmu.lti.ws4j.util.WS4JConfiguration;
 
 public class WordNetSimilarity {
     private int numSentences;
-    private List<List<String>> lemmetizedSentences;
+    private List<List<String>> lemmatizedSentences;
     private static ILexicalDatabase db = new NictWordNet();
     private static RelatednessCalculator[] rcs = {new HirstStOnge(db), new LeacockChodorow(db),
         new Lesk(db), new WuPalmer(db), new Resnik(db), new JiangConrath(db), new Lin(db),
         new Path(db)};
 
-    public WordNetSimilarity(List<List<String>> lemmetizedSentences) {
-        this.lemmetizedSentences = lemmetizedSentences;
-        this.numSentences = lemmetizedSentences.size();
+    public WordNetSimilarity(List<List<String>> lemmatizedSentences) {
+        this.lemmatizedSentences = lemmatizedSentences;
+        this.numSentences = lemmatizedSentences.size();
     }
 
     public static void main(String[] args) {
@@ -37,9 +37,9 @@ public class WordNetSimilarity {
         RelatednessCalculator rCalculator = rcs[type];
         double[][] adjMatrix = new double[numSentences][numSentences];
         for (int i = 0; i < numSentences; ++i) {
-            List<String> vectorI = lemmetizedSentences.get(i);
+            List<String> vectorI = lemmatizedSentences.get(i);
             for (int j = i; j < numSentences; j++) {
-                List<String> vectorJ = lemmetizedSentences.get(j);
+                List<String> vectorJ = lemmatizedSentences.get(j);
                 double totalSimI = 0.0;
                 double totalSimJ = 0.0;
                 for (String wordI : vectorI) {
