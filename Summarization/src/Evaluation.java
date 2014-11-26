@@ -1,5 +1,10 @@
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -9,6 +14,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import edu.stanford.nlp.process.DocumentPreprocessor;
+import edu.stanford.nlp.util.StringUtils;
+
 public class Evaluation {
 
     public static String getTextFromP(Node pNode) {
@@ -16,7 +24,8 @@ public class Evaluation {
         NodeList childNodes = pNode.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); ++i) {
             Node childNode = childNodes.item(i);
-            if (childNode instanceof Element && childNode.getNodeName() == "DIV") {
+            if (childNode instanceof Element
+                    && childNode.getNodeName() == "DIV") {
                 text += getTextFromDiv(childNode);
             } else if (childNode.getNodeName() == "#text") {
                 text += childNode.getTextContent();
@@ -41,47 +50,77 @@ public class Evaluation {
         return text;
     }
 
-    public static void main(String[] args) throws Exception {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        InputStream stream = new FileInputStream("cmplg-xml/9404003.xml");
-        Document document = builder.parse(stream);
-
+    public static Paper extractFromXML(Document document) {
         Paper paper = new Paper();
-
         NodeList nodeList = document.getDocumentElement().getChildNodes();
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node node = nodeList.item(i);
             if (node instanceof Element) {
-                switch (node.getNodeName()) {
-                    case "TITLE": // System.out.println(node.getLastChild().getTextContent().trim());
-                        paper.title = node.getLastChild().getTextContent().trim();
-                        break;
-                    case "ABSTRACT":
-                        NodeList childNodes = node.getChildNodes();
-                        for (int j = 0; j < childNodes.getLength(); ++j) {
-                            Node childNode = childNodes.item(j);
-                            if (childNode instanceof Element && childNode.getNodeName() == "P") {
-                                // System.out.println(childNode.getLastChild().getTextContent().trim());
-                                Node test = childNode.getLastChild();
-                                paper.abstractTruth += childNode.getLastChild().getTextContent().trim();
-                            }
+                if (node.getNodeName() == "TITLE") {
+                    paper.title = node.getLastChild().getTextContent().trim();
+                } else if (node.getNodeName() == "ABSTRACT") {
+                    NodeList childNodes = node.getChildNodes();
+                    for (int j = 0; j < childNodes.getLength(); ++j) {
+                        Node childNode = childNodes.item(j);
+                        if (childNode instanceof Element && childNode.getNodeName() == "P") {
+                            paper.abstractTruth += getTextFromP(childNode);
                         }
-                        break;
-                    case "BODY":
-                        NodeList divNodes = node.getChildNodes();
-                        for (int j = 0; j < divNodes.getLength(); ++j) {
-                            Node divNode = divNodes.item(j);
-                            if (divNode instanceof Element && divNode.getNodeName() == "DIV") {
-                                // System.out.println(getTextFromDiv(divNode));
-                                paper.body += getTextFromDiv(divNode);
-                            }
+                    }
+                } else if (node.getNodeName() == "BODY") {
+                    NodeList divNodes = node.getChildNodes();
+                    for (int j = 0; j < divNodes.getLength(); ++j) {
+                        Node divNode = divNodes.item(j);
+                        if (divNode instanceof Element && divNode.getNodeName() == "DIV") {
+                            paper.body += getTextFromDiv(divNode);
                         }
-                        break;
+                    }
                 }
             }
         }
-        System.out.println(paper.abstractTruth);
+        return paper;
+    }
+
+    public static void cleanUpAndWrite(String rawContent, String fileName) {
+        DocumentPreprocessor dp = new DocumentPreprocessor(new StringReader(rawContent));
+        String cleanContent = "";
+        for (List sentence : dp) {
+            cleanContent += StringUtils.join(sentence, " ");
+        }
+        try { 
+            File outputFile = new File(fileName);
+            if (!outputFile.exists()) {
+                outputFile.createNewFile();
+            } 
+            FileWriter fileWriter = new FileWriter(outputFile.getAbsoluteFile());
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(cleanContent);
+            bufferedWriter.close();
+        } catch (Exception e) {
+            System.out.println("Error in writing to " + fileName + " " + e.getMessage());
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        File dir = new File("cmplg-xml");
+        File[] directoryListing = dir.listFiles();
+        int i = 1;
+        if (directoryListing != null) {
+          for (File child : directoryListing) {
+              System.out.println(child.getName());
+              String filePath = child.getAbsolutePath();
+              String rootFileName = child.getName().split("\\.")[0];
+              InputStream stream = new FileInputStream(filePath);
+              Document document = builder.parse(stream);
+              Paper paper = extractFromXML(document);
+              cleanUpAndWrite(paper.abstractTruth, "PapersDataset/" + rootFileName 
+                      + "_abstract.txt");
+              cleanUpAndWrite(paper.body, "PapersDataset/" + rootFileName + "_body.txt");
+              System.out.println(i + ":" + rootFileName);
+              i += 1;
+          }
+        }
     }
 }
 
