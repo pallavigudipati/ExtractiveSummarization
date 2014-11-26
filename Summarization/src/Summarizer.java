@@ -17,7 +17,7 @@ public class Summarizer {
 
     public static void main(String[] args) throws IOException {
         Summarizer summarizer = new Summarizer();
-        summarizer.getRawAndStemmed("TreasureIsland.txt");
+        summarizer.getRawAndStemmed("JuliusCaesar.txt");
         summarizer.printSentenceGraph(0.05);
         summarizer.runCommunityDetection();
         summarizer.runInfluenceMaximization();
@@ -74,6 +74,7 @@ public class Summarizer {
     		}
     		
     	}
+    	System.out.println(sentenceBudgets);
         List<String> command = new ArrayList<String>();
         command.add("python");
         command.add("influence_maximization.py");
