@@ -5,9 +5,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 
+import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.LemmaAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.process.DocumentPreprocessor;
+import edu.stanford.nlp.util.CoreMap;
 import edu.stanford.nlp.util.StringUtils;
 
 public class Summarizer {
@@ -19,23 +28,38 @@ public class Summarizer {
     public List<String> rawDocumentHuman = new ArrayList<String>();
     public List<List<String>> stemmedSentencesHuman = new ArrayList<List<String>>();
     public List<List<String>> summarySentences = new ArrayList<List<String>>();
+    public List<List<String>> baselineSummarySentences = new ArrayList<List<String>>();
+    public List<List<String>> lemmatizedSentences = new ArrayList<List<String>>();
     
     public static void main(String[] args) throws IOException {
-    	String fileName="TreasureIsland.txt";
-    	String fileNameHuman="TreasureIsland.txt";
+    	String fileName="testPaper2.txt";
+    	String fileNameHuman="abstract2.txt";
     	Summarizer summarizer = new Summarizer();
         summarizer.getRawAndStemmed(fileName);
-        summarizer.printSentenceGraph(0.05);
+        summarizer.printSentenceGraphIdf(0.05);
         summarizer.runCommunityDetection();
         summarizer.runInfluenceMaximization();
         // TODO: Attach IM part.
         summarizer.printSummary("IM/IM_output.txt");
         summarizer.getRawAndStemmedHuman(fileNameHuman);
-        double ROUGEScore=summarizer.computeROUGEScore();
+        double ROUGEScore=summarizer.computeROUGEUnigramScore();
         System.out.println(ROUGEScore);
         System.out.println("Total Sentences in Document:"+numSentences);
     }
-    
+    /*
+    public void getBaselineSummary() throws IOException
+    {
+    	BufferedReader br = new BufferedReader(new FileReader("PageRankNodesDir/pageRankNodes.txt"));
+    	
+    	String line;
+    	while ((line = br.readLine()) != null) {
+    	   // process the line.
+    		int selectedNode = Integer.parseInt(line);
+    		baselineSummarySentences.add();
+    	}
+    	br.close();
+    	
+    }*/
     public double computeROUGEScore()
     {
     	HashMap<String,Integer> humanBigrams=new HashMap<String,Integer>();
@@ -72,10 +96,48 @@ public class Summarizer {
     	System.out.println(totalBigrams);
     	return ROUGEScore;
     }
+
+    public double computeROUGEUnigramScore()
+    {
+    	HashMap<String,Integer> humanBigrams=new HashMap<String,Integer>();
+    	HashMap<String,Integer> automaticBigrams=new HashMap<String,Integer>();
+    	for(List<String> stemmedSentenceHuman: stemmedSentencesHuman)
+    	{
+    		for(int j=0;j<stemmedSentenceHuman.size();j++)
+    		{
+    			String bigram=stemmedSentenceHuman.get(j);
+    			humanBigrams.put(bigram, 1);
+    		}
+    	}
+    	for(List<String> summarySentence: summarySentences)
+    	{
+    		for(int j=0;j<summarySentence.size();j++)
+    		{
+    			String bigram=summarySentence.get(j);
+    			automaticBigrams.put(bigram, 1);
+    		}
+    	}
+    	int overlap=0;
+    	int totalBigrams=humanBigrams.size();
+    	System.out.println("Overlapping Bigrams");
+    	for(String humanBigram:humanBigrams.keySet())
+    	{
+    		if(automaticBigrams.containsKey(humanBigram))
+    		{
+    			overlap+=1;
+    			System.out.println(humanBigram);
+    		}
+    	}
+    	double ROUGEScore=(overlap+0.0)/(totalBigrams+0.0);
+    	System.out.println(overlap);
+    	System.out.println(totalBigrams);
+    	return ROUGEScore;
+    }
+    
     public void runInfluenceMaximization() throws IOException
     {
     	int totalGraphSize=0;
-    	int summaryLimit=10; //TODO:Add as global parameter
+    	int summaryLimit=3; //TODO:Add as global parameter
     	/*Read node counts from a file*/
     	BufferedReader br = new BufferedReader(new FileReader("CommunityNodeCounts/communityNodeCounts.txt"));
     	ArrayList<Integer> communityNodeCounts=new ArrayList<Integer>();
@@ -157,6 +219,7 @@ public class Summarizer {
         numSentences = rawDocument.size();
     }
 
+
     public void getRawAndStemmedHuman(String fileName) {
         DocumentPreprocessor dp = new DocumentPreprocessor(fileName);
         Stemmer stemmer = new Stemmer();
@@ -174,7 +237,31 @@ public class Summarizer {
         numSentencesHuman = rawDocumentHuman.size();
     }
     
-    public void printSentenceGraph(double threshold) {
+
+    public void getRawAndLemmatized(String fileName) {
+        DocumentPreprocessor dp = new DocumentPreprocessor(fileName);
+        // String document = "";
+        Properties props = new Properties();
+        props.put("annotators", "tokenize, ssplit, pos, lemma");
+        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+        for (List sentence : dp) {
+            String rawSentence = StringUtils.join(sentence, " ");
+            rawDocument.add(rawSentence);
+            List<String> lemmatizedSentence = new ArrayList<String>();
+            Annotation document = new Annotation(rawSentence);
+            pipeline.annotate(document);
+            CoreMap sentenceParsed = document.get(SentencesAnnotation.class).get(0);
+            for (CoreLabel token : sentenceParsed.get(TokensAnnotation.class)) {
+              // Retrieve and add the lemma for each word into the
+              // list of lemmas
+              lemmatizedSentence.add(token.get(LemmaAnnotation.class));
+            }
+            lemmatizedSentences.add(lemmatizedSentence);
+        }
+        numSentences = rawDocument.size();
+    }
+
+    public void printSentenceGraphIdf(double threshold) {
         InvertedIndex index = new InvertedIndex();
         index.createIndex(stemmedSentences);
         double[][] weightMatrix = index.getCosineSimilarity();
@@ -190,6 +277,26 @@ public class Summarizer {
             writer.close();
         } catch (Exception e) {
             System.out.println("Not able to print sentenceGraph: " + e.getMessage());
+        }
+        System.out.println("Sentence Graph Creation: Finished");
+    }
+
+    public void printSentenceGraphWN(double threshold, int type) {
+        WordNetSimilarity wnSimilarity = new WordNetSimilarity(lemmatizedSentences);
+        double[][] weightMatrix = wnSimilarity.getCosineSimilarity(type);
+        try {
+            PrintWriter writer = new PrintWriter("sentenceGraph.txt", "UTF-8");
+            for (int i = 0; i < numSentences; i++) {
+                for (int j = i; j < numSentences; j++) {
+                    if (weightMatrix[i][j] >= threshold) {
+                        writer.println(i + " " + j + " " + weightMatrix[i][j]);
+                    }
+                }
+            }
+            writer.close();
+        } catch (Exception e) {
+            System.out.println("Not able to print sentenceGraph: "
+                    + e.getMessage());
         }
         System.out.println("Sentence Graph Creation: Finished");
     }
