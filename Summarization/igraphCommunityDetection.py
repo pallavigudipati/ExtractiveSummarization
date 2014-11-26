@@ -68,12 +68,11 @@ for vertexCluster in vertexClustering:
 		for destinationIndex in range(len(vertexCluster)):
 			source=vertexCluster[sourceIndex]
 			destination=vertexCluster[destinationIndex]
-			if destination>source:
-				edgeKey=str(source)+"_"+str(destination)
-				if edgeKey not in edgeMap:
-					continue
-				edgeWeight=edgeMap[edgeKey]
-				communityFile.write(str(source)+" "+str(destination)+" "+str(edgeWeight)+"\n")
+			edgeKey=str(source)+"_"+str(destination)
+			if edgeKey not in edgeMap:
+				continue
+			edgeWeight=edgeMap[edgeKey]
+			communityFile.write(str(source)+" "+str(destination)+" "+str(edgeWeight)+"\n")
 	communityFile.close()
 	communityNodeCountsFile.write(str(len(vertexCluster))+"\n")
 	#Note: activate the below code for 0-indexed communities
