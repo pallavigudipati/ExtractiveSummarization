@@ -17,7 +17,7 @@ public class Summarizer {
 
     public static void main(String[] args) throws IOException {
         Summarizer summarizer = new Summarizer();
-        summarizer.getRawAndStemmed("JuliusCaesar.txt");
+        summarizer.getRawAndStemmed("GiftOfTheMagi.txt");
         summarizer.printSentenceGraph(0.05);
         summarizer.runCommunityDetection();
         summarizer.runInfluenceMaximization();
@@ -29,7 +29,7 @@ public class Summarizer {
     public void runInfluenceMaximization() throws IOException
     {
     	int totalGraphSize=0;
-    	int summaryLimit=20; //TODO:Add as global parameter
+    	int summaryLimit=10; //TODO:Add as global parameter
     	/*Read node counts from a file*/
     	BufferedReader br = new BufferedReader(new FileReader("CommunityNodeCounts/communityNodeCounts.txt"));
     	ArrayList<Integer> communityNodeCounts=new ArrayList<Integer>();
