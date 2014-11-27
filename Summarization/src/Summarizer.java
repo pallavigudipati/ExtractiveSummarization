@@ -34,15 +34,17 @@ public class Summarizer {
     public List<List<String>> summarySentences = new ArrayList<List<String>>();
     public List<List<String>> baselineSummarySentences = new ArrayList<List<String>>();
     public List<List<String>> globalInfluenceSummarySentences = new ArrayList<List<String>>();
+    public List<List<String>> centroidBasedSummarySentences = new ArrayList<List<String>>();
     public List<List<String>> lemmatizedSentences = new ArrayList<List<String>>();
-
+    
 	public static void main(String[] args) throws IOException {
 		
 		double averageROUGEScore=0.0;
 		double averageROUGEScoreBaseline=0.0;
 		double averageROUGEScoreGlobalInfluence=0.0;
+		double averageROUGEScoreCentroid=0.0;
 		double numberOfRuns=0;
-		for(int runs=0;runs<1;runs++)
+		for(int runs=0;runs<1000;runs++)
 		{
 			int i=9404003+runs;
 			String fileName = "PapersDataset/"+i+"_body.txt";
@@ -71,6 +73,7 @@ public class Summarizer {
 			summarizer.runInfluenceMaximization();
 			summarizer.runInfluenceMaximizationGlobal();
 			summarizer.printSummary("IM/IM_output.txt");
+			summarizer.printCentroidBasedSummary();
 			summarizer.printGlobalInfluenceSummary("IMGlobal/IM_output.txt");
 			
 			double ROUGEScore = summarizer.computeROUGEUnigramScore(summarizer.summarySentences);
@@ -78,25 +81,30 @@ public class Summarizer {
 			int summarySentenceLength=summarizer.computeSummarySentenceLength();
 			summarizer.getBaselineSummary(summarySentenceLength);
 			double ROUGEScoreBaseline = summarizer.computeROUGEUnigramScore(summarizer.baselineSummarySentences);
+			double ROUGEScoreCentroid = summarizer.computeROUGEUnigramScore(summarizer.centroidBasedSummarySentences);
 			System.out.println(ROUGEScore);
 			System.out.println(ROUGEScoreBaseline);
 			System.out.println(ROUGEScoreGlobalInfluence);
 			averageROUGEScore+=ROUGEScore;
 			averageROUGEScoreBaseline+=ROUGEScoreBaseline;
 			averageROUGEScoreGlobalInfluence+=ROUGEScoreGlobalInfluence;
+			averageROUGEScoreCentroid+=ROUGEScoreCentroid;
 			numberOfRuns+=1.0;
 			System.out.println("Total Sentences in Document:" + summarizer.numSentences);
 			System.out.println("Number of Runs:"+numberOfRuns);
 			System.out.println("AverageROUGEScore"+averageROUGEScore/numberOfRuns);
 			System.out.println("AverageROUGEScoreBaseline:"+averageROUGEScoreBaseline/numberOfRuns);
 			System.out.println("AverageROUGEScoreGlobalInfluence:"+averageROUGEScoreGlobalInfluence/numberOfRuns);
+			System.out.println("AverageROUGEScoreCentroid:"+averageROUGEScoreCentroid/numberOfRuns);
 		}
 		averageROUGEScore/=numberOfRuns;
 		averageROUGEScoreBaseline/=numberOfRuns;
 		averageROUGEScoreGlobalInfluence/=numberOfRuns;
+		averageROUGEScoreCentroid/=numberOfRuns;
 		System.out.println("AverageROUGEScore"+averageROUGEScore);
 		System.out.println("AverageROUGEScoreBaseline:"+averageROUGEScoreBaseline);
 		System.out.println("AverageROUGEScoreGlobalInfluence:"+averageROUGEScoreGlobalInfluence);
+		System.out.println("AverageROUGEScoreCentroid:"+averageROUGEScoreCentroid);
 		System.out.println("NumberOfRuns:"+numberOfRuns);
 	}
 
@@ -362,9 +370,15 @@ public class Summarizer {
         InvertedIndex index = new InvertedIndex();
         index.createIndex(stemmedSentences);
         TreeMap<Integer, Double> centroidScores = index.getCentroidScores();
-        int i = 0;
+        int i=0;
         for (int entry : centroidScores.descendingKeySet()) {
-            System.out.println(rawDocument.get(i));
+            System.out.println(rawDocument.get(entry));
+            centroidBasedSummarySentences.add(stemmedSentences.get(entry));
+            i+=1;
+            if(i>=summaryLimit)
+            {
+            	break;
+            }
         }
     }
 
