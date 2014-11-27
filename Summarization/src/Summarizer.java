@@ -38,8 +38,9 @@ public class Summarizer {
 		
 		double averageROUGEScore=0.0;
 		double averageROUGEScoreBaseline=0.0;
+		double averageROUGEScoreGlobalInfluence=0.0;
 		double numberOfRuns=0;
-		for(int runs=0;runs<98000;runs++)
+		for(int runs=0;runs<1;runs++)
 		{
 			int i=9404003+runs;
 			String fileName = "PapersDataset/"+i+"_body.txt";
@@ -47,7 +48,7 @@ public class Summarizer {
 			File f1=new File(fileName);
 			File f2=new File(fileNameHuman);
 			System.out.println("FileIndex:"+i);
-			if(i==9405001)
+			if(i==9405001 || i==9408015 || i==9412005 || i==9505001 || i==9505024 || i==9505031 || i==9512003 || i== 9604005 || i==9604013)
 			{
 				continue;
 			}
@@ -57,6 +58,11 @@ public class Summarizer {
 			}
 			Summarizer summarizer = new Summarizer();
 			summarizer.getRawAndStemmed(fileName);
+			summarizer.getRawAndStemmedHuman(fileNameHuman);
+			if(summarizer.stemmedSentencesHuman.size()<5)
+			{
+				continue;
+			}
 			summarizer.printSentenceGraphIdf(0.05);
 			summarizer.printUndirectedSentenceGraphIdf(0.05);
 			summarizer.runCommunityDetection();
@@ -64,7 +70,7 @@ public class Summarizer {
 			summarizer.runInfluenceMaximizationGlobal();
 			summarizer.printSummary("IM/IM_output.txt");
 			summarizer.printGlobalInfluenceSummary("IMGlobal/IM_output.txt");
-			summarizer.getRawAndStemmedHuman(fileNameHuman);
+			
 			double ROUGEScore = summarizer.computeROUGEUnigramScore(summarizer.summarySentences);
 			double ROUGEScoreGlobalInfluence = summarizer.computeROUGEUnigramScore(summarizer.globalInfluenceSummarySentences);
 			int summarySentenceLength=summarizer.computeSummarySentenceLength();
@@ -73,21 +79,23 @@ public class Summarizer {
 			System.out.println(ROUGEScore);
 			System.out.println(ROUGEScoreBaseline);
 			System.out.println(ROUGEScoreGlobalInfluence);
-			if(summarizer.stemmedSentencesHuman.size()>=5)
-			{
-				averageROUGEScore+=ROUGEScore;
-				averageROUGEScoreBaseline+=ROUGEScoreBaseline;
-				numberOfRuns+=1.0;
-				System.out.println("Total Sentences in Document:" + summarizer.numSentences);
-				System.out.println("Number of Runs:"+numberOfRuns);
-			}
+			averageROUGEScore+=ROUGEScore;
+			averageROUGEScoreBaseline+=ROUGEScoreBaseline;
+			averageROUGEScoreGlobalInfluence+=ROUGEScoreGlobalInfluence;
+			numberOfRuns+=1.0;
+			System.out.println("Total Sentences in Document:" + summarizer.numSentences);
+			System.out.println("Number of Runs:"+numberOfRuns);
 			System.out.println("AverageROUGEScore"+averageROUGEScore/numberOfRuns);
 			System.out.println("AverageROUGEScoreBaseline:"+averageROUGEScoreBaseline/numberOfRuns);
+			System.out.println("AverageROUGEScoreGlobalInfluence:"+averageROUGEScoreGlobalInfluence/numberOfRuns);
 		}
 		averageROUGEScore/=numberOfRuns;
 		averageROUGEScoreBaseline/=numberOfRuns;
+		averageROUGEScoreGlobalInfluence/=numberOfRuns;
 		System.out.println("AverageROUGEScore"+averageROUGEScore);
 		System.out.println("AverageROUGEScoreBaseline:"+averageROUGEScoreBaseline);
+		System.out.println("AverageROUGEScoreGlobalInfluence:"+averageROUGEScoreGlobalInfluence);
+		System.out.println("NumberOfRuns:"+numberOfRuns);
 	}
 
 	public int computeSummarySentenceLength()
@@ -257,6 +265,7 @@ public class Summarizer {
 		}
 		SystemCommandExecutor commandExecutor = new SystemCommandExecutor(
 				command);
+		System.out.println(command);
 		commandExecutor = new SystemCommandExecutor(command);
 		try {
 			int result = commandExecutor.executeCommand();
