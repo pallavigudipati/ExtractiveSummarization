@@ -58,8 +58,16 @@ for line in inputFile:
 #vertexCluster=g.community_infomap(edge_weights="weight")
 #for clusterInstance in vertexCluster:
 #	print clusterInstance
+
+
+#CNM Community Detection Algorithm
 vertexDendrogram=g.community_fastgreedy(weights="weight")
 vertexClustering=vertexDendrogram.as_clustering()
+
+"""
+InfoMap Community Detection Algorithm
+vertexClustering=g.community_infomap(edge_weights="weight")
+"""
 vertexClusterIndex=0
 for vertexCluster in vertexClustering:
 	print vertexCluster
@@ -93,3 +101,10 @@ IndicedPRList.sort(key=lambda tup: tup[1])
 IndicedPRList.reverse()
 print "Summary according to Global PageRank"
 print [elem[0] for elem in IndicedPRList[:20]]
+pageRankNodesDir="PageRankNodesDir/"
+if os.path.exists(pageRankNodesDir):
+	shutil.rmtree(pageRankNodesDir)
+os.makedirs(pageRankNodesDir)
+pageRankNodesFile=open(pageRankNodesDir+"pageRankNodes.txt","w")
+for elem in IndicedPRList:
+	pageRankNodesFile.write(str(elem[0])+"\n")
