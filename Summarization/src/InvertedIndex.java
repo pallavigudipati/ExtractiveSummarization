@@ -1,7 +1,10 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class InvertedIndex {
 
@@ -11,6 +14,7 @@ public class InvertedIndex {
     public HashMap<String, Double> idfScores = new HashMap<String, Double>();
     public HashMap<String, Double>[] tfIdfScores;
     public int[] maxWordCounts;
+    public List<List<String>> rawDocument;
 
     public static void main(String[] args) {
         List<String> sen1 = Arrays.asList("my","name","is","pal");
@@ -26,6 +30,7 @@ public class InvertedIndex {
      * Makes an index from word to hashmap(sentence no -> count)
      */
     public void createIndex(List<List<String>> document) {
+        rawDocument = document;
         numSentences = document.size();
         maxWordCounts = new int[numSentences];
         for (int i = 0; i < document.size(); ++i) {
@@ -42,6 +47,36 @@ public class InvertedIndex {
                 }
             }
         }
+    }
+
+    public TreeMap<Integer, Double> getCentroidScores() {
+        HashMap<String, Double> wordCentroidScores = getCentroidScoresForWords();
+        TreeMap<Integer, Double> centroidScores = new TreeMap<Integer, Double>();
+        int i = 0;
+        for (List<String> sentence : rawDocument) {
+            double centroidScore = 0.0;
+            for (String word : sentence) {
+                centroidScore += wordCentroidScores.get(word);
+            }
+            centroidScores.put(i, centroidScore);
+            i += 1;
+        }
+        return centroidScores;
+    }
+
+    private HashMap<String, Double> getCentroidScoresForWords() {
+        generateIdfScores();
+        HashMap<String, Double> centroidScores = new HashMap<String, Double>();
+        for (String word : idfScores.keySet()) {
+            double idf = idfScores.get(word);
+            HashMap<Integer, Integer> tfs = index.get(word);
+            int totalTf = 0;
+            for (int sentNum : tfs.keySet()) {
+                totalTf += tfs.get(sentNum);
+            }
+            centroidScores.put(word, idf * totalTf);
+        }
+        return centroidScores;
     }
 
     public double[][] getCosineSimilarity() {
